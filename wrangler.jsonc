@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "deepdrama",
+  "compatibility_date": "2025-12-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "./dist",
+  
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "deepdrama-production",
+      "database_id": "PLACEHOLDER"
+    }
+  ]
+}
