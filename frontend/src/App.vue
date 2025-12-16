@@ -41,86 +41,95 @@
         <a-layout-content class="content">
           <!-- 数据看板 -->
           <div v-if="currentPage === 'dashboard'" class="page">
-            <h2 class="page-title">
-              <icon-dashboard />
-              数据看板
-            </h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h2 class="page-title">
+                <icon-dashboard />
+                数据看板
+              </h2>
+              <a-button type="primary" @click="refreshData">
+                <template #icon><icon-refresh /></template>
+                刷新数据
+              </a-button>
+            </div>
 
-            <!-- KPI卡片 -->
-            <a-row :gutter="16" class="kpi-row">
-              <a-col :span="6">
-                <a-card class="kpi-card kpi-blue">
-                  <a-statistic 
-                    title="剧本总库" 
-                    :value="stats.totalScripts"
-                    :value-style="{ color: '#165DFF', fontSize: '32px', fontWeight: 'bold' }"
-                  >
-                    <template #prefix>
-                      <icon-book :size="24" />
-                    </template>
-                  </a-statistic>
-                </a-card>
-              </a-col>
-              <a-col :span="6">
-                <a-card class="kpi-card kpi-green">
-                  <a-statistic 
-                    title="立项转化率" 
-                    :value="stats.conversionRate"
-                    suffix="%"
-                    :value-style="{ color: '#00B42A', fontSize: '32px', fontWeight: 'bold' }"
-                  >
-                    <template #prefix>
-                      <icon-check :size="24" />
-                    </template>
-                  </a-statistic>
-                </a-card>
-              </a-col>
-              <a-col :span="6">
-                <a-card class="kpi-card kpi-orange">
-                  <a-statistic 
-                    title="待办积压" 
-                    :value="stats.pendingRating"
-                    :value-style="{ color: '#FF7D00', fontSize: '32px', fontWeight: 'bold' }"
-                  >
-                    <template #prefix>
-                      <span style="font-size: 24px;">⏰</span>
-                    </template>
-                  </a-statistic>
-                </a-card>
-              </a-col>
-              <a-col :span="6">
-                <a-card class="kpi-card kpi-purple">
-                  <a-statistic 
-                    title="平均质量分" 
-                    :value="stats.avgScore"
-                    :value-style="{ color: '#722ED1', fontSize: '32px', fontWeight: 'bold' }"
-                  >
-                    <template #prefix>
-                      <icon-star :size="24" />
-                    </template>
-                  </a-statistic>
-                </a-card>
-              </a-col>
-            </a-row>
+            <a-spin :loading="dashboardLoading" style="width: 100%;">
+              <!-- KPI卡片 -->
+              <a-row :gutter="16" class="kpi-row">
+                <a-col :span="6">
+                  <a-card class="kpi-card kpi-blue">
+                    <a-statistic 
+                      title="剧本总库" 
+                      :value="stats.totalScripts"
+                      :value-style="{ color: '#165DFF', fontSize: '32px', fontWeight: 'bold' }"
+                    >
+                      <template #prefix>
+                        <icon-book :size="24" />
+                      </template>
+                    </a-statistic>
+                  </a-card>
+                </a-col>
+                <a-col :span="6">
+                  <a-card class="kpi-card kpi-green">
+                    <a-statistic 
+                      title="立项转化率" 
+                      :value="stats.conversionRate"
+                      suffix="%"
+                      :value-style="{ color: '#00B42A', fontSize: '32px', fontWeight: 'bold' }"
+                    >
+                      <template #prefix>
+                        <icon-check :size="24" />
+                      </template>
+                    </a-statistic>
+                  </a-card>
+                </a-col>
+                <a-col :span="6">
+                  <a-card class="kpi-card kpi-orange">
+                    <a-statistic 
+                      title="待办积压" 
+                      :value="stats.pendingRating"
+                      :value-style="{ color: '#FF7D00', fontSize: '32px', fontWeight: 'bold' }"
+                    >
+                      <template #prefix>
+                        <span style="font-size: 24px;">⏰</span>
+                      </template>
+                    </a-statistic>
+                  </a-card>
+                </a-col>
+                <a-col :span="6">
+                  <a-card class="kpi-card kpi-purple">
+                    <a-statistic 
+                      title="平均质量分" 
+                      :value="stats.avgScore"
+                      :precision="2"
+                      :value-style="{ color: '#722ED1', fontSize: '32px', fontWeight: 'bold' }"
+                    >
+                      <template #prefix>
+                        <icon-star :size="24" />
+                      </template>
+                    </a-statistic>
+                  </a-card>
+                </a-col>
+              </a-row>
 
-            <!-- 图表区域 -->
-            <a-row :gutter="16" style="margin-top: 16px;">
-              <a-col :span="8">
-                <a-card title="评级漏斗" :bordered="true">
-                  <div ref="gradeChart" style="height: 300px;"></div>
-                </a-card>
-              </a-col>
-              <a-col :span="8">
-                <a-card title="来源分析" :bordered="true">
-                  <div ref="sourceChart" style="height: 300px;"></div>
-                </a-card>
-              </a-col>
-              <a-col :span="8">
-                <a-card title="状态分布" :bordered="true">
-                  <div ref="statusChart" style="height: 300px;"></div>
-                </a-card>
-              </a-col>
-            </a-row>
+              <!-- 图表 -->
+              <a-row :gutter="16">
+                <a-col :span="8">
+                  <a-card title="📊 评级漏斗" class="chart-card">
+                    <div ref="gradeChart" style="height: 300px;"></div>
+                  </a-card>
+                </a-col>
+                <a-col :span="8">
+                  <a-card title="🎯 来源分析" class="chart-card">
+                    <div ref="sourceChart" style="height: 300px;"></div>
+                  </a-card>
+                </a-col>
+                <a-col :span="8">
+                  <a-card title="📈 状态分布" class="chart-card">
+                    <div ref="statusChart" style="height: 300px;"></div>
+                  </a-card>
+                </a-col>
+              </a-row>
+            </a-spin>
           </div>
 
           <!-- 剧本管理 -->
@@ -131,91 +140,152 @@
             </h2>
 
             <!-- 快捷筛选 -->
-            <a-radio-group v-model="quickFilter" type="button" class="quick-filter">
-              <a-radio value="all">全部 ({{ getTabCount('all') }})</a-radio>
-              <a-radio value="pending">待评分 ({{ getTabCount('pending') }})</a-radio>
-              <a-radio value="sLevel">S级潜力 ({{ getTabCount('sLevel') }})</a-radio>
-              <a-radio value="project">已立项 ({{ getTabCount('project') }})</a-radio>
-            </a-radio-group>
-
-            <!-- 筛选工具栏 -->
-            <a-card style="margin: 16px 0;">
+            <a-card class="filter-card">
               <a-space size="medium">
-                <a-input-search
-                  v-model="searchText"
-                  placeholder="搜索剧本名称或编号"
-                  style="width: 300px;"
-                />
-                <a-select v-model="filterStatus" placeholder="全部状态" style="width: 150px;" allow-clear>
-                  <a-option value="">全部状态</a-option>
-                  <a-option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</a-option>
-                </a-select>
-                <a-select v-model="filterSource" placeholder="全部来源" style="width: 150px;" allow-clear>
-                  <a-option value="">全部来源</a-option>
-                  <a-option v-for="s in sourceOptions" :key="s" :value="s">{{ s }}</a-option>
-                </a-select>
-                <a-button @click="resetFilters">
-                  <template #icon><icon-refresh /></template>
-                  重置
+                <a-button 
+                  :type="quickFilter === 'all' ? 'primary' : 'outline'"
+                  @click="quickFilter = 'all'"
+                >
+                  全部 ({{ getTabCount('all') }})
                 </a-button>
-                <a-button type="primary">
-                  <template #icon><icon-plus /></template>
-                  新增剧本
+                <a-button 
+                  :type="quickFilter === 'pending' ? 'primary' : 'outline'"
+                  @click="quickFilter = 'pending'"
+                >
+                  待评分 ({{ getTabCount('pending') }})
+                </a-button>
+                <a-button 
+                  :type="quickFilter === 'sLevel' ? 'primary' : 'outline'"
+                  @click="quickFilter = 'sLevel'"
+                >
+                  S级潜力 ({{ getTabCount('sLevel') }})
+                </a-button>
+                <a-button 
+                  :type="quickFilter === 'project' ? 'primary' : 'outline'"
+                  @click="quickFilter = 'project'"
+                >
+                  已立项 ({{ getTabCount('project') }})
+                </a-button>
+                <a-button @click="refreshData">
+                  <template #icon><icon-refresh /></template>
+                  刷新
                 </a-button>
               </a-space>
             </a-card>
 
-            <!-- 剧本表格 -->
+            <!-- 搜索和高级筛选 -->
+            <a-card class="search-card">
+              <a-row :gutter="16">
+                <a-col :span="8">
+                  <a-input-search 
+                    v-model="searchText" 
+                    placeholder="搜索剧本名称或编号"
+                    allow-clear
+                  />
+                </a-col>
+                <a-col :span="5">
+                  <a-select 
+                    v-model="filterStatus" 
+                    placeholder="状态筛选"
+                    allow-clear
+                  >
+                    <a-option 
+                      v-for="status in statusOptions" 
+                      :key="status" 
+                      :value="status"
+                    >
+                      {{ status }}
+                    </a-option>
+                  </a-select>
+                </a-col>
+                <a-col :span="5">
+                  <a-select 
+                    v-model="filterSource" 
+                    placeholder="来源筛选"
+                    allow-clear
+                  >
+                    <a-option 
+                      v-for="source in sourceOptions" 
+                      :key="source" 
+                      :value="source"
+                    >
+                      {{ source }}
+                    </a-option>
+                  </a-select>
+                </a-col>
+                <a-col :span="6">
+                  <a-space>
+                    <a-button @click="resetFilters">重置筛选</a-button>
+                  </a-space>
+                </a-col>
+              </a-row>
+            </a-card>
+
+            <!-- 数据表格 -->
             <a-card>
               <a-table 
                 :columns="columns" 
                 :data="filteredScripts"
+                :loading="loading"
                 :pagination="{ pageSize: 10 }"
               >
                 <template #scriptId="{ record }">
-                  <span class="mono-font">{{ record.scriptId }}</span>
+                  <a-tag color="blue">{{ record.scriptId }}</a-tag>
                 </template>
+                
                 <template #grade="{ record }">
-                  <a-tag v-if="getLatestRating(record)" 
-                         :color="getGradeColor(getLatestRating(record).grade)">
-                    {{ getLatestRating(record).grade }}
+                  <a-tag v-if="record.grade" :color="getGradeColor(record.grade)">
+                    {{ record.grade }}
                   </a-tag>
-                  <span v-else style="color: #999;">待评分</span>
+                  <span v-else style="color: #86909c;">未评分</span>
                 </template>
+                
                 <template #totalScore="{ record }">
-                  <span v-if="getLatestRating(record)" class="score-text">
-                    {{ getLatestRating(record).totalScore }}
+                  <span v-if="record.totalScore" style="font-weight: 600;">
+                    {{ record.totalScore }}
                   </span>
-                  <span v-else style="color: #999;">-</span>
+                  <span v-else style="color: #86909c;">-</span>
                 </template>
+                
                 <template #tags="{ record }">
                   <a-space>
-                    <a-tag v-for="tag in parseTags(record.tags)" 
-                           :key="tag" 
-                           :color="getTagColor(tag)">
+                    <a-tag 
+                      v-for="tag in parseTags(record.tags)" 
+                      :key="tag"
+                      :color="getTagColor(tag)"
+                      size="small"
+                    >
                       {{ tag }}
                     </a-tag>
                   </a-space>
                 </template>
+                
                 <template #isProject="{ record }">
                   <a-tag v-if="record.isProject" color="green">
-                    <icon-check />已立项
+                    <template #icon><icon-check /></template>
+                    已立项
                   </a-tag>
-                  <span v-else style="color: #999;">-</span>
+                  <span v-else style="color: #86909c;">-</span>
                 </template>
+                
                 <template #operations="{ record }">
                   <a-space>
                     <a-button type="text" size="small">
-                      <icon-eye />
+                      <template #icon><icon-eye /></template>
+                      查看
                     </a-button>
-                    <a-button type="text" size="small">
-                      <icon-star />
+                    <a-button type="text" size="small" status="success">
+                      <template #icon><icon-edit /></template>
+                      评分
                     </a-button>
-                    <a-button type="text" size="small">
-                      <icon-edit />
-                    </a-button>
-                    <a-button type="text" size="small" status="danger">
-                      <icon-delete />
+                    <a-button 
+                      type="text" 
+                      size="small" 
+                      status="danger"
+                      @click="handleDelete(record.scriptId)"
+                    >
+                      <template #icon><icon-delete /></template>
+                      删除
                     </a-button>
                   </a-space>
                 </template>
@@ -225,44 +295,54 @@
 
           <!-- 剧本排行 -->
           <div v-if="currentPage === 'leaderboard'" class="page">
-            <h2 class="page-title">
-              <icon-trophy />
-              剧本排行
-            </h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h2 class="page-title">
+                <icon-trophy />
+                剧本排行榜 Top 10
+              </h2>
+              <a-button type="primary" @click="refreshData">
+                <template #icon><icon-refresh /></template>
+                刷新
+              </a-button>
+            </div>
 
             <a-card>
               <a-table 
                 :columns="leaderboardColumns" 
-                :data="leaderboard"
+                :data="leaderboardData"
+                :loading="loading"
                 :pagination="false"
               >
                 <template #rank="{ rowIndex }">
-                  <span v-if="rowIndex === 0" style="font-size: 24px;">🥇</span>
-                  <span v-else-if="rowIndex === 1" style="font-size: 24px;">🥈</span>
-                  <span v-else-if="rowIndex === 2" style="font-size: 24px;">🥉</span>
-                  <span v-else class="rank-number">{{ rowIndex + 1 }}</span>
-                </template>
-                <template #name="{ record }">
-                  <div>
-                    <div class="script-name">{{ record.name }}</div>
-                    <div v-if="record.grade === 'S'" class="hot-label">
-                      🔥 爆款预测
-                    </div>
+                  <div class="rank-badge" :class="`rank-${rowIndex + 1}`">
+                    {{ rowIndex + 1 }}
                   </div>
                 </template>
+                
+                <template #name="{ record }">
+                  <div style="font-weight: 600;">{{ record.name }}</div>
+                  <div style="font-size: 12px; color: #86909c;">{{ record.scriptId }}</div>
+                </template>
+                
                 <template #grade="{ record }">
-                  <a-tag :color="getGradeColor(record.grade)" style="font-size: 14px; padding: 4px 12px;">
-                    {{ record.grade }}级
+                  <a-tag :color="getGradeColor(record.grade)" size="large">
+                    {{ record.grade }}
                   </a-tag>
                 </template>
+                
                 <template #totalScore="{ record }">
-                  <span class="score-large">{{ record.totalScore }}</span>
+                  <span style="font-size: 18px; font-weight: bold; color: #165DFF;">
+                    {{ record.totalScore }}
+                  </span>
                 </template>
+                
                 <template #tags="{ record }">
-                  <a-space>
-                    <a-tag v-for="tag in parseTags(record.tags)" 
-                           :key="tag" 
-                           :color="getTagColor(tag)">
+                  <a-space wrap>
+                    <a-tag 
+                      v-for="tag in parseTags(record.tags)" 
+                      :key="tag"
+                      :color="getTagColor(tag)"
+                    >
                       {{ tag }}
                     </a-tag>
                   </a-space>
@@ -285,46 +365,28 @@ import {
   IconEye, IconEdit, IconDelete, IconCheck
 } from '@arco-design/web-vue/es/icon'
 
+// 导入API
+import { getStats, getScripts, getRankings, deleteScript } from './api/index.js'
+
 // 当前页面
 const currentPage = ref('dashboard')
 
+// 加载状态
+const loading = ref(false)
+const dashboardLoading = ref(false)
+
 // 统计数据
 const stats = ref({
-  totalScripts: 30,
-  projectCount: 8,
-  pendingRating: 7,
-  conversionRate: '26.7',
-  avgScore: '82.67'
+  totalScripts: 0,
+  projectCount: 0,
+  pendingRating: 0,
+  conversionRate: 0,
+  avgScore: 0
 })
 
-// 模拟数据
-const mockScripts = [
-  { id: 1, scriptId: 'SP001', name: '总裁的替嫁甜妻', tags: '["女频","甜宠","付费"]', sourceType: '内部团队', team: 'A组编剧团', status: '完整剧本', isProject: true },
-  { id: 2, scriptId: 'SP002', name: '重生之商业帝国', tags: '["男频","商战","付费"]', sourceType: '内部团队', team: 'B组编剧团', status: '终稿(已立项)', isProject: true },
-  { id: 3, scriptId: 'SP003', name: '闪婚老公是大佬', tags: '["女频","甜宠","爆款引擎"]', sourceType: '外部投稿', team: null, status: '改稿中', isProject: false },
-  { id: 4, scriptId: 'SP004', name: '战神归来', tags: '["男频","都市","免费"]', sourceType: '合作编剧', team: 'C组编剧团', status: '一卡初稿', isProject: false },
-  { id: 5, scriptId: 'SP005', name: '豪门弃妇逆袭记', tags: '["女频","复仇","付费"]', sourceType: '内部团队', team: 'A组编剧团', status: '完整剧本', isProject: true },
-  { id: 6, scriptId: 'SP006', name: '穿越之农门医女', tags: '["女频","穿越","免费"]', sourceType: '版权采购', team: null, status: '改稿中', isProject: false },
-  { id: 7, scriptId: 'SP007', name: '神豪系统', tags: '["男频","系统","付费"]', sourceType: '内部团队', team: 'B组编剧团', status: '一卡初稿', isProject: false },
-  { id: 8, scriptId: 'SP008', name: '冷面王爷的心尖宠', tags: '["女频","古言","爆款引擎"]', sourceType: '外部投稿', team: null, status: '完整剧本', isProject: false },
-  { id: 9, scriptId: 'SP009', name: '龙王殿', tags: '["男频","都市","付费"]', sourceType: '合作编剧', team: 'A组编剧团', status: '终稿(已立项)', isProject: true },
-  { id: 10, scriptId: 'SP010', name: '全能女神', tags: '["女频","职场","免费"]', sourceType: '内部团队', team: 'C组编剧团', status: '改稿中', isProject: false }
-]
-
-const mockRatings = [
-  { scriptId: 'SP001', totalScore: 91.7, grade: 'S' },
-  { scriptId: 'SP002', totalScore: 92.9, grade: 'S' },
-  { scriptId: 'SP003', totalScore: 85.4, grade: 'A' },
-  { scriptId: 'SP004', totalScore: 76.1, grade: 'B' },
-  { scriptId: 'SP005', totalScore: 91.6, grade: 'S' },
-  { scriptId: 'SP006', totalScore: 75.8, grade: 'B' },
-  { scriptId: 'SP008', totalScore: 85.7, grade: 'A' },
-  { scriptId: 'SP009', totalScore: 90.5, grade: 'S' },
-  { scriptId: 'SP010', totalScore: 67.1, grade: 'C' }
-]
-
-const scripts = ref(mockScripts)
-const ratings = ref(mockRatings)
+// 数据
+const scripts = ref([])
+const leaderboardData = ref([])
 
 // 筛选
 const quickFilter = ref('all')
@@ -357,22 +419,100 @@ const leaderboardColumns = [
   { title: '标签', slotName: 'tags' }
 ]
 
-// 排行榜数据
-const leaderboard = computed(() => {
-  return scripts.value
-    .map(s => ({
-      ...s,
-      ...getLatestRating(s)
-    }))
-    .filter(s => s.totalScore)
-    .sort((a, b) => b.totalScore - a.totalScore)
-    .slice(0, 10)
-})
+// ==================== API调用函数 ====================
 
-// 辅助函数
+// 加载统计数据
+const loadStats = async () => {
+  try {
+    dashboardLoading.value = true
+    console.log('正在加载统计数据...')
+    const data = await getStats()
+    console.log('统计数据:', data)
+    
+    stats.value = {
+      totalScripts: data.totalScripts || 0,
+      projectCount: data.totalProjects || 0,
+      pendingRating: data.pendingRatings || 0,
+      conversionRate: data.conversionRate || 0,
+      avgScore: data.averageScore || 0
+    }
+    
+    // 刷新图表
+    nextTick(() => {
+      initCharts()
+    })
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+  } finally {
+    dashboardLoading.value = false
+  }
+}
+
+// 加载剧本列表
+const loadScripts = async () => {
+  try {
+    loading.value = true
+    console.log('正在加载剧本列表...')
+    const data = await getScripts()
+    console.log('剧本列表:', data)
+    
+    scripts.value = data || []
+  } catch (error) {
+    console.error('加载剧本列表失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载排行榜
+const loadLeaderboard = async () => {
+  try {
+    loading.value = true
+    console.log('正在加载排行榜...')
+    const data = await getRankings(10)
+    console.log('排行榜数据:', data)
+    
+    leaderboardData.value = data || []
+  } catch (error) {
+    console.error('加载排行榜失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 刷新当前页面数据
+const refreshData = async () => {
+  console.log('刷新数据，当前页面:', currentPage.value)
+  if (currentPage.value === 'dashboard') {
+    await loadStats()
+  } else if (currentPage.value === 'scripts') {
+    await loadScripts()
+  } else if (currentPage.value === 'leaderboard') {
+    await loadLeaderboard()
+  }
+}
+
+// 删除剧本
+const handleDelete = async (scriptId) => {
+  try {
+    console.log('删除剧本:', scriptId)
+    await deleteScript(scriptId)
+    console.log('删除成功')
+    await loadScripts()
+  } catch (error) {
+    console.error('删除失败:', error)
+  }
+}
+
+// ==================== 辅助函数 ====================
+
 const parseTags = (tags) => {
   try {
-    return JSON.parse(tags || '[]')
+    if (Array.isArray(tags)) return tags
+    if (typeof tags === 'string') {
+      return JSON.parse(tags)
+    }
+    return []
   } catch {
     return []
   }
@@ -405,17 +545,10 @@ const getGradeColor = (grade) => {
   return colorMap[grade] || 'gray'
 }
 
-const getLatestRating = (script) => {
-  return ratings.value.find(r => r.scriptId === script.scriptId)
-}
-
 const getTabCount = (tab) => {
   if (tab === 'all') return scripts.value.length
-  if (tab === 'pending') return scripts.value.filter(s => !getLatestRating(s)).length
-  if (tab === 'sLevel') return scripts.value.filter(s => {
-    const r = getLatestRating(s)
-    return r && r.totalScore >= 90
-  }).length
+  if (tab === 'pending') return scripts.value.filter(s => !s.grade).length
+  if (tab === 'sLevel') return scripts.value.filter(s => s.grade === 'S').length
   if (tab === 'project') return scripts.value.filter(s => s.isProject).length
   return 0
 }
@@ -425,12 +558,9 @@ const filteredScripts = computed(() => {
   
   // 快捷筛选
   if (quickFilter.value === 'pending') {
-    result = result.filter(s => !getLatestRating(s))
+    result = result.filter(s => !s.grade)
   } else if (quickFilter.value === 'sLevel') {
-    result = result.filter(s => {
-      const r = getLatestRating(s)
-      return r && r.totalScore >= 90
-    })
+    result = result.filter(s => s.grade === 'S')
   } else if (quickFilter.value === 'project') {
     result = result.filter(s => s.isProject)
   }
@@ -464,12 +594,17 @@ const resetFilters = () => {
   quickFilter.value = 'all'
 }
 
-const handleMenuClick = (key) => {
+const handleMenuClick = async (key) => {
+  console.log('切换菜单:', key)
   currentPage.value = key
+  
+  // 切换页面时加载对应数据
   if (key === 'dashboard') {
-    nextTick(() => {
-      initCharts()
-    })
+    await loadStats()
+  } else if (key === 'scripts') {
+    await loadScripts()
+  } else if (key === 'leaderboard') {
+    await loadLeaderboard()
   }
 }
 
@@ -479,6 +614,7 @@ const sourceChart = ref(null)
 const statusChart = ref(null)
 
 const initCharts = () => {
+  console.log('初始化图表...')
   // 评级漏斗
   if (gradeChart.value) {
     const chart1 = echarts.init(gradeChart.value)
@@ -508,21 +644,22 @@ const initCharts = () => {
       }]
     })
   }
-  
+
   // 来源分析
   if (sourceChart.value) {
     const chart2 = echarts.init(sourceChart.value)
     chart2.setOption({
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
       xAxis: {
         type: 'category',
         data: ['内部团队', '外部投稿', '合作编剧', '版权采购'],
-        axisLabel: { interval: 0, rotate: 15 }
+        axisLabel: { rotate: 0, fontSize: 12 }
       },
       yAxis: { type: 'value' },
       series: [{
         type: 'bar',
-        data: [13, 6, 6, 5],
+        data: [14, 6, 6, 4],
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#3B82F6' },
@@ -533,16 +670,17 @@ const initCharts = () => {
       }]
     })
   }
-  
+
   // 状态分布
   if (statusChart.value) {
     const chart3 = echarts.init(statusChart.value)
     chart3.setOption({
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+      grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
       xAxis: {
         type: 'category',
         data: ['一卡初稿', '改稿中', '完整剧本', '终稿(已立项)'],
-        axisLabel: { interval: 0, rotate: 15 }
+        axisLabel: { rotate: 20, fontSize: 12 }
       },
       yAxis: { type: 'value' },
       series: [{
@@ -560,10 +698,11 @@ const initCharts = () => {
   }
 }
 
-onMounted(() => {
-  nextTick(() => {
-    initCharts()
-  })
+// 组件挂载时加载数据
+onMounted(async () => {
+  console.log('App 组件已挂载，开始加载数据...')
+  await loadStats()
+  await loadScripts()
 })
 </script>
 
