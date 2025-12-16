@@ -1,26 +1,36 @@
 import axios from 'axios'
 
-// API基础地址 - 自动检测后端地址
-// 开发环境：使用环境变量或当前主机
-// 生产环境：使用实际部署的后端地址
+// API基础地址 - 智能检测后端地址
+// 自动检测规则：
+// 1. 优先使用环境变量 VITE_API_BASE_URL（如果配置了）
+// 2. 如果通过IP访问前端，自动使用相同IP的后端
+// 3. 如果通过localhost访问前端，使用localhost后端
 const getBaseURL = () => {
-  // 优先使用环境变量配置的后端地址
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL
+  // 优先使用环境变量配置的后端地址（非空时）
+  const envUrl = import.meta.env.VITE_API_BASE_URL
+  if (envUrl && envUrl.trim() !== '') {
+    console.log('使用环境变量配置的后端地址:', envUrl)
+    return envUrl
   }
   
-  // 如果前端和后端在同一台机器，使用当前主机地址
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return `http://${window.location.hostname}:8080`
+  // 获取当前访问的主机名
+  const hostname = window.location.hostname
+  
+  // 如果通过IP地址访问（非localhost/127.0.0.1），使用相同IP访问后端
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    const ipUrl = `http://${hostname}:8080`
+    console.log('通过IP访问，自动使用IP后端:', ipUrl)
+    return ipUrl
   }
   
   // 默认使用localhost
+  console.log('通过localhost访问，使用localhost后端')
   return 'http://localhost:8080'
 }
 
 const BASE_URL = getBaseURL()
 
-console.log('API Base URL:', BASE_URL)
+console.log('✓ API Base URL:', BASE_URL)
 
 // 创建axios实例
 const request = axios.create({
