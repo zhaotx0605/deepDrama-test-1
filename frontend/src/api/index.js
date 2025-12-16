@@ -1,7 +1,26 @@
 import axios from 'axios'
 
-// API基础地址 - 您的Java后端地址
-const BASE_URL = 'http://localhost:8080'
+// API基础地址 - 自动检测后端地址
+// 开发环境：使用环境变量或当前主机
+// 生产环境：使用实际部署的后端地址
+const getBaseURL = () => {
+  // 优先使用环境变量配置的后端地址
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  
+  // 如果前端和后端在同一台机器，使用当前主机地址
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return `http://${window.location.hostname}:8080`
+  }
+  
+  // 默认使用localhost
+  return 'http://localhost:8080'
+}
+
+const BASE_URL = getBaseURL()
+
+console.log('API Base URL:', BASE_URL)
 
 // 创建axios实例
 const request = axios.create({
