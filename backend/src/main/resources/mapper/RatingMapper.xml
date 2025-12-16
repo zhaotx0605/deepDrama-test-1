@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.deepdrama.mapper.RatingMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.deepdrama.model.Rating">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="user_id" property="userId"/>
+        <result column="content_score" property="contentScore"/>
+        <result column="market_score" property="marketScore"/>
+        <result column="commercial_score" property="commercialScore"/>
+        <result column="compliance_score" property="complianceScore"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="grade" property="grade"/>
+        <result column="comments" property="comments"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_role" property="userRole"/>
+    </resultMap>
+
+    <!-- 查询评分列表 -->
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT 
+            r.*,
+            u.name as user_name,
+            u.role as user_role
+        FROM ratings r
+        LEFT JOIN users u ON r.user_id = u.user_id
+        WHERE r.script_id = #{scriptId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <!-- 根据ID查询评分 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM ratings WHERE id = #{id}
+    </select>
+
+    <!-- 插入评分 -->
+    <insert id="insert" parameterType="com.deepdrama.model.Rating" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ratings (
+            script_id, user_id, content_score, market_score, commercial_score, 
+            compliance_score, total_score, grade, comments
+        ) VALUES (
+            #{scriptId}, #{userId}, #{contentScore}, #{marketScore}, #{commercialScore},
+            #{complianceScore}, #{totalScore}, #{grade}, #{comments}
+        )
+    </insert>
+
+    <!-- 删除评分 (根据剧本ID) -->
+    <delete id="deleteByScriptId">
+        DELETE FROM ratings WHERE script_id = #{scriptId}
+    </delete>
+
+    <!-- 查询剧本的平均分 -->
+    <select id="selectAverageScore" resultType="java.math.BigDecimal">
+        SELECT AVG(total_score) 
+        FROM ratings 
+        WHERE script_id = #{scriptId}
+    </select>
+
+    <!-- 查询剧本的最高分 -->
+    <select id="selectMaxScore" resultType="java.math.BigDecimal">
+        SELECT MAX(total_score) 
+        FROM ratings 
+        WHERE script_id = #{scriptId}
+    </select>
+
+    <!-- 查询剧本的评分次数 -->
+    <select id="countByScriptId" resultType="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM ratings 
+        WHERE script_id = #{scriptId}
+    </select>
+
+    <!-- 查询所有剧本的平均分 -->
+    <select id="selectOverallAverageScore" resultType="java.math.BigDecimal">
+        SELECT AVG(total_score) FROM (
+            SELECT script_id, MAX(total_score) as total_score 
+            FROM ratings 
+            GROUP BY script_id
+        ) t
+    </select>
+
+    <!-- 统计评级分布 -->
+    <select id="selectGradeDistribution" resultType="java.util.HashMap">
+        SELECT 
+            grade, 
+            COUNT(*) as count 
+        FROM (
+            SELECT script_id, 
+                CASE 
+                    WHEN MAX(compliance_score) &lt; 60 THEN 'D'
+                    WHEN MAX(total_score) &gt;= 90 THEN 'S'
+                    WHEN MAX(total_score) &gt;= 80 THEN 'A'
+                    WHEN MAX(total_score) &gt;= 70 THEN 'B'
+                    WHEN MAX(total_score) &gt;= 60 THEN 'C'
+                    ELSE 'D'
+                END as grade
+            FROM ratings 
+            GROUP BY script_id
+        ) t
+        GROUP BY grade
+    </select>
+
+</mapper>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.deepdrama.mapper.UserMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.deepdrama.model.User">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="name" property="name"/>
+        <result column="role" property="role"/>
+        <result column="email" property="email"/>
+        <result column="department" property="department"/>
+        <result column="avatar" property="avatar"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 查询用户列表 -->
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM users ORDER BY created_at DESC
+    </select>
+
+    <!-- 根据ID查询用户 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户ID查询 -->
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE user_id = #{userId}
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.deepdrama.model.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (
+            user_id, name, role, email, department, avatar
+        ) VALUES (
+            #{userId}, #{name}, #{role}, #{email}, #{department}, #{avatar}
+        )
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="update">
+        UPDATE users
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="role != null">role = #{role},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 删除用户 -->
+    <delete id="deleteByUserId">
+        DELETE FROM users WHERE user_id = #{userId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.deepdrama.mapper.ScriptMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.deepdrama.model.Script">
+        <id column="id" property="id"/>
+        <result column="script_id" property="scriptId"/>
+        <result column="name" property="name"/>
+        <result column="preview" property="preview"/>
+        <result column="file_url" property="fileUrl"/>
+        <result column="tags" property="tags"/>
+        <result column="source_type" property="sourceType"/>
+        <result column="team" property="team"/>
+        <result column="status" property="status"/>
+        <result column="is_project" property="isProject"/>
+        <result column="submit_date" property="submitDate"/>
+        <result column="submit_user" property="submitUser"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="grade" property="grade"/>
+        <result column="rating_count" property="ratingCount"/>
+    </resultMap>
+
+    <!-- 查询剧本列表 -->
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT 
+            s.*,
+            (
+                SELECT MAX(r.total_score)
+                FROM ratings r
+                WHERE r.script_id = s.script_id
+            ) as total_score,
+            (
+                SELECT CASE 
+                    WHEN MAX(r.compliance_score) &lt; 60 THEN 'D'
+                    WHEN MAX(r.total_score) &gt;= 90 THEN 'S'
+                    WHEN MAX(r.total_score) &gt;= 80 THEN 'A'
+                    WHEN MAX(r.total_score) &gt;= 70 THEN 'B'
+                    WHEN MAX(r.total_score) &gt;= 60 THEN 'C'
+                    ELSE 'D'
+                END
+                FROM ratings r
+                WHERE r.script_id = s.script_id
+            ) as grade,
+            (
+                SELECT COUNT(*)
+                FROM ratings r
+                WHERE r.script_id = s.script_id
+            ) as rating_count
+        FROM scripts s
+        WHERE 1=1
+        
+        <!-- 快捷筛选 -->
+        <if test="query.quickFilter == 'pending'">
+            AND NOT EXISTS (
+                SELECT 1 FROM ratings r WHERE r.script_id = s.script_id
+            )
+        </if>
+        <if test="query.quickFilter == 's_potential'">
+            AND EXISTS (
+                SELECT 1 FROM ratings r 
+                WHERE r.script_id = s.script_id AND r.total_score &gt;= 90
+            )
+        </if>
+        <if test="query.quickFilter == 'project'">
+            AND s.is_project = 1
+        </if>
+        
+        <!-- 状态筛选 -->
+        <if test="query.status != null and query.status != ''">
+            AND s.status = #{query.status}
+        </if>
+        
+        <!-- 来源筛选 -->
+        <if test="query.source != null and query.source != ''">
+            AND s.source_type = #{query.source}
+        </if>
+        
+        <!-- 搜索 -->
+        <if test="query.search != null and query.search != ''">
+            AND (
+                s.name LIKE CONCAT('%', #{query.search}, '%')
+                OR s.script_id LIKE CONCAT('%', #{query.search}, '%')
+            )
+        </if>
+        
+        ORDER BY s.created_at DESC
+    </select>
+
+    <!-- 根据ID查询剧本 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM scripts WHERE id = #{id}
+    </select>
+
+    <!-- 根据剧本编号查询 -->
+    <select id="selectByScriptId" resultMap="BaseResultMap">
+        SELECT * FROM scripts WHERE script_id = #{scriptId}
+    </select>
+
+    <!-- 插入剧本 -->
+    <insert id="insert" parameterType="com.deepdrama.model.Script" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO scripts (
+            script_id, name, preview, file_url, tags, source_type, team, 
+            status, is_project, submit_date, submit_user
+        ) VALUES (
+            #{scriptId}, #{name}, #{preview}, #{fileUrl}, #{tags}, #{sourceType}, #{team},
+            #{status}, #{isProject}, #{submitDate}, #{submitUser}
+        )
+    </insert>
+
+    <!-- 更新剧本 -->
+    <update id="update">
+        UPDATE scripts
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="preview != null">preview = #{preview},</if>
+            <if test="fileUrl != null">file_url = #{fileUrl},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            <if test="sourceType != null">source_type = #{sourceType},</if>
+            <if test="team != null">team = #{team},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isProject != null">is_project = #{isProject},</if>
+        </set>
+        WHERE script_id = #{scriptId}
+    </update>
+
+    <!-- 删除剧本 -->
+    <delete id="deleteByScriptId">
+        DELETE FROM scripts WHERE script_id = #{scriptId}
+    </delete>
+
+    <!-- 统计剧本总数 -->
+    <select id="countTotal" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM scripts
+    </select>
+
+    <!-- 统计已立项数量 -->
+    <select id="countProjects" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM scripts WHERE is_project = 1
+    </select>
+
+    <!-- 统计待评分数量 -->
+    <select id="countPendingRatings" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM scripts s 
+        WHERE NOT EXISTS (
+            SELECT 1 FROM ratings r WHERE r.script_id = s.script_id
+        )
+    </select>
+
+    <!-- 统计来源分布 -->
+    <select id="selectSourceDistribution" resultType="java.util.HashMap">
+        SELECT 
+            source_type,
+            COUNT(*) as count
+        FROM scripts
+        GROUP BY source_type
+    </select>
+
+    <!-- 统计状态分布 -->
+    <select id="selectStatusDistribution" resultType="java.util.HashMap">
+        SELECT 
+            status,
+            COUNT(*) as count
+        FROM scripts
+        GROUP BY status
+    </select>
+
+    <!-- 统计月度趋势 -->
+    <select id="selectMonthlyTrend" resultType="java.util.HashMap">
+        SELECT 
+            DATE_FORMAT(submit_date, '%Y-%m') as month,
+            COUNT(*) as total,
+            SUM(CASE WHEN script_id IN (
+                SELECT script_id FROM ratings WHERE total_score &gt;= 80
+            ) THEN 1 ELSE 0 END) as high_quality
+        FROM scripts
+        WHERE submit_date BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE_FORMAT(submit_date, '%Y-%m')
+        ORDER BY month
+    </select>
+
+    <!-- 查询最新的剧本编号 -->
+    <select id="selectMaxScriptId" resultType="java.lang.String">
+        SELECT script_id 
+        FROM scripts 
+        ORDER BY id DESC 
+        LIMIT 1
+    </select>
+
+    <!-- 查询排行榜 -->
+    <select id="selectRankings" resultMap="BaseResultMap">
+        SELECT 
+            s.*,
+            MAX(r.total_score) as total_score,
+            MAX(r.content_score) as content_score,
+            MAX(r.market_score) as market_score,
+            MAX(r.commercial_score) as commercial_score,
+            CASE 
+                WHEN MAX(r.compliance_score) &lt; 60 THEN 'D'
+                WHEN MAX(r.total_score) &gt;= 90 THEN 'S'
+                WHEN MAX(r.total_score) &gt;= 80 THEN 'A'
+                WHEN MAX(r.total_score) &gt;= 70 THEN 'B'
+                WHEN MAX(r.total_score) &gt;= 60 THEN 'C'
+                ELSE 'D'
+            END as grade,
+            COUNT(r.id) as rating_count
+        FROM scripts s
+        LEFT JOIN ratings r ON s.script_id = r.script_id
+        WHERE r.id IS NOT NULL
+        GROUP BY s.script_id
+        ORDER BY total_score DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
